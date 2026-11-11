@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { apiClient } from "@/lib/api";
-import { CONFIG } from "@/lib/config";
+import { registerUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,9 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
   const { isChecking } = useAuthGuard({ requireAuth: false });
-  const [username, setUsername] = useState("");
+  
+  // 1. Change 'username' state to 'email'
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,21 +35,18 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await apiClient("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ username, password }),
-      });
-
-      router.push(CONFIG.ROUTES.LOGIN);
+      // 2. Pass email as the username payload if your backend expects { username, password }
+      await registerUser("", email, password);
+      router.push("/login?registered=success");
     } catch (err: any) {
-      setError(err.message || "Registration failed.");
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
+    <div className="flex justify-center items-center min-h-[70vh]">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Create Account</CardTitle>
@@ -56,18 +54,15 @@ export default function RegisterPage() {
         </CardHeader>
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
-            {error && (
-              <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/50 rounded-md border border-red-200 dark:border-red-900">
-                {error}
-              </div>
-            )}
+            {error && <p className="text-sm text-destructive font-medium">{error}</p>}
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -82,16 +77,16 @@ export default function RegisterPage() {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
+          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Registering..." : "Register"}
+              {loading ? "Creating account..." : "Register"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <div className="text-sm text-center text-muted-foreground">
               Already have an account?{" "}
-              <Link href={CONFIG.ROUTES.LOGIN} className="text-primary underline">
+              <Link href="/login" className="text-primary hover:underline">
                 Login
               </Link>
-            </p>
+            </div>
           </CardFooter>
         </form>
       </Card>
