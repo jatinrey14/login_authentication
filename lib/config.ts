@@ -1,1 +1,13 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+export const CONFIG = {
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://adet-backend-h73r.onrender.com",
+  STORAGE_KEYS: {
+    ACCESS_TOKEN: "accessToken",
+    REFRESH_TOKEN: "refreshToken",
+  },
+  ROUTES: {
+    HOME: "/",
+    LOGIN: "/login",
+    REGISTER: "/register",
+    DASHBOARD: "/dashboard",
+  },
+} as const;

@@ -3,19 +3,30 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { apiClient } from "@/lib/api";
+import { CONFIG } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { registerUser } from "@/lib/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const { isChecking } = useAuthGuard({ requireAuth: false });
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
+  if (isChecking) return null;
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,44 +34,40 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await registerUser(name, email, password);
-      router.push("/login");
+      await apiClient("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
+
+      router.push(CONFIG.ROUTES.LOGIN);
     } catch (err: any) {
-      setError(err.message || "Registration failed");
+      setError(err.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[70vh]">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create an Account</CardTitle>
-          <CardDescription>Sign up to connect with the backend API.</CardDescription>
+          <CardTitle className="text-2xl">Create Account</CardTitle>
+          <CardDescription>Register a new account to get started.</CardDescription>
         </CardHeader>
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">
-            {error && <p className="text-sm text-destructive font-medium">{error}</p>}
+            {error && (
+              <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/50 rounded-md border border-red-200 dark:border-red-900">
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="name"
+                id="username"
                 type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
@@ -75,14 +82,14 @@ export default function RegisterPage() {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Register"}
+              {loading ? "Registering..." : "Register"}
             </Button>
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-sm text-center text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary underline hover:opacity-80">
-                Sign In
+              <Link href={CONFIG.ROUTES.LOGIN} className="text-primary underline">
+                Login
               </Link>
             </p>
           </CardFooter>

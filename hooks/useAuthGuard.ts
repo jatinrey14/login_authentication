@@ -1,14 +1,29 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
-export function useAuthGuard() {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { isAuthenticated } from "@/lib/auth";
+
+interface AuthGuardOptions {
+  requireAuth?: boolean;
+}
+
+export function useAuthGuard(options: AuthGuardOptions = {}) {
+  const { requireAuth = true } = options;
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
+    const userIsAuth = isAuthenticated();
+
+    if (requireAuth && !userIsAuth) {
+      router.replace("/login");
+    } else if (!requireAuth && userIsAuth) {
+      router.replace("/dashboard");
+    } else {
+      setIsChecking(false);
     }
-  }, [router]);
+  }, [requireAuth, router]);
+
+  return { isChecking };
 }
