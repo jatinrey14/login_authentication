@@ -1,5 +1,6 @@
 export const CONFIG = {
-  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://adet-backend-h73r.onrender.com",
+  API_BASE_URL:
+    process.env.NEXT_PUBLIC_API_BASE_URL || "https://adet-backend-h73r.onrender.com",
   STORAGE_KEYS: {
     ACCESS_TOKEN: "accessToken",
     REFRESH_TOKEN: "refreshToken",
@@ -9,5 +10,10 @@ export const CONFIG = {
     LOGIN: "/login",
     REGISTER: "/register",
     DASHBOARD: "/dashboard",
+  },
+  ENDPOINTS: {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    INQUIRIES: "/inquiries",
   },
 } as const;
